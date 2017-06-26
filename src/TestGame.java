@@ -22,5 +22,6 @@ public class TestGame {
 		TcpChannel server = new TcpChannel();
 		Thread thread = new Thread(server);
 		thread.start();
+		System.out.print("启动\n");
 	}
 }
