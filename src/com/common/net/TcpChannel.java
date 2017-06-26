@@ -8,10 +8,12 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 
 public class TcpChannel implements Runnable {
-
+	// 超时时间，单位毫秒
+	private static final int TimeOut = 1000 * 10;
 	// 端口
 	private Integer port = 20006;
 	// 服务器通道 服务
@@ -77,6 +79,7 @@ public class TcpChannel implements Runnable {
 		SocketChannel channel = (SocketChannel) key.channel();
 		System.out.print(channel.socket().getInetAddress().toString() + "  \n");
 		// 从通道里面读取数据到缓冲区并返回读取字节数
+
 		int count = channel.read(this.buf);
 
 		if (count == -1) {
@@ -85,43 +88,55 @@ public class TcpChannel implements Runnable {
 			key.cancel();
 			return;
 		}
-
+		
+		
 		// 将数据从缓冲区中拿出来
 		String input = new String(this.buf.array()).trim();
 		// 那么现在判断是连接的那种服务
 		System.out.println("您的输入为：" + input);
+		// 定义编码格式
+		Charset charset = Charset.forName("UTF-8");
+		channel.write(buf);
 
 	}
 
 	@Override
 	public void run() {
 		while (true) {
+			Iterator<?> selectorKeys = null;
+			SelectionKey currentKey;
 			try {
 				// 选择一组键，其相应的通道已为 I/O 操作准备就绪。
+				if (selector.select(TimeOut) == 0) {
+					// 监听注册通道，当其中有注册的 IO
+					// 操作可以进行时，该函数返回，并将对应的
+					System.out.print("独自等待.");
+					continue;
+				}
 				this.selector.select();
 
 				// 返回此选择器的已选择键集
-				// public abstract Set<SelectionKey> selectedKeys()
-				Iterator<?> selectorKeys = this.selector.selectedKeys()
-						.iterator();
+				selectorKeys = this.selector.selectedKeys().iterator();
 				while (selectorKeys.hasNext()) {
 					// 这里找到当前的选择键
-					SelectionKey key = (SelectionKey) selectorKeys.next();
+					currentKey = (SelectionKey) selectorKeys.next();
 					// 然后将它从返回键队列中删除
-					selectorKeys.remove();
-					if (!key.isValid()) {
+
+					if (!currentKey.isValid()) {
 						continue;
 					}
-					if (key.isAcceptable()) {
+					if (currentKey.isAcceptable()) {
 						// 如果遇到请求那么就响应
-						this.accept(key);
-					} else if (key.isReadable()) {
+						this.accept(currentKey);
+					} else if (currentKey.isReadable()) {
 						// 读取客户端的数据
-						this.read(key);
+						this.read(currentKey);
 					}
+					selectorKeys.remove();
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				selectorKeys.remove();
+				// e.printStackTrace();
 			}
 		}
 
