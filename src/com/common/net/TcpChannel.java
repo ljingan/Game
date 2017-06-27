@@ -90,11 +90,34 @@ public class TcpChannel implements Runnable {
 		String input = new String(this.buf.array()).trim();
 		// 那么现在判断是连接的那种服务
 		System.out.println("您的输入为：" + input);
-
 	}
+	
+	//解包
+    private boolean unPack(MessageBuffer buff)
+    {
+       // if (buff.DataSize < 6) return false;
+        
+//        CBytesBuffer tmpbuff = new CBytesBuffer(buff);
+//        dPackage.buffer.clear();
+//
+//        dPackage.size = CBufferFilter.readuint32(tmpbuff);
+//        dPackage.msgid = CBufferFilter.readuint16(tmpbuff);
+//
+//        if (tmpbuff.getDataSize() < dPackage.size - 6)
+//        {
+//            return false;
+//        }
+//        dPackage.buffer.write(tmpbuff.Buffer, (int)dPackage.size - 6);
+//
+//
+//        buff.popBytes((int)dPackage.size);
+        return true;
+    }
 
 	@Override
 	public void run() {
+		Iterator<?> selectorKeys = null;
+		SelectionKey currentKey = null;
 		while (true) {
 			try {
 				// 选择一组键，其相应的通道已为 I/O 操作准备就绪。
@@ -102,26 +125,27 @@ public class TcpChannel implements Runnable {
 
 				// 返回此选择器的已选择键集
 				// public abstract Set<SelectionKey> selectedKeys()
-				Iterator<?> selectorKeys = this.selector.selectedKeys()
+				 selectorKeys = this.selector.selectedKeys()
 						.iterator();
 				while (selectorKeys.hasNext()) {
 					// 这里找到当前的选择键
-					SelectionKey key = (SelectionKey) selectorKeys.next();
+					currentKey = (SelectionKey) selectorKeys.next();
 					// 然后将它从返回键队列中删除
-					selectorKeys.remove();
-					if (!key.isValid()) {
+					
+					if (!currentKey.isValid()) {
 						continue;
 					}
-					if (key.isAcceptable()) {
+					if (currentKey.isAcceptable()) {
 						// 如果遇到请求那么就响应
-						this.accept(key);
-					} else if (key.isReadable()) {
+						this.accept(currentKey);
+					} else if (currentKey.isReadable()) {
 						// 读取客户端的数据
-						this.read(key);
+						this.read(currentKey);
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				selectorKeys.remove();
+				//e.printStackTrace();
 			}
 		}
 
