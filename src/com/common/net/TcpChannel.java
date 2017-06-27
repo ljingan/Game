@@ -80,27 +80,28 @@ public class TcpChannel implements Runnable {
 		System.out.print(channel.socket().getInetAddress().toString() + "  \n");
 		// 从通道里面读取数据到缓冲区并返回读取字节数
 
-		int count = channel.read(this.buf);
-//
-//		if (count == -1) {
-//			// 取消这个通道的注册
-//			key.channel().close();
-//			key.cancel();
-//			return;
-//		}
-
-		ByteBuffer buff = ByteBuffer.allocate(1024 * 1024);
+		// int count = channel.read(this.buf);
+		//
+		// if (count == -1) {
+		// // 取消这个通道的注册
+		// key.channel().close();
+		// key.cancel();
+		// return;
+		// }
+		Charset charset = Charset.forName("gb2312");
+		ByteBuffer buff = ByteBuffer.allocate(64);
 		String content = "";
 		// 开始读数据
 		try {
 			while (channel.read(buff) > 0) {
-				
-				System.out.print("ssss  " + buff.getInt() + "   " + buf.position() +  "\n");
+
+				// System.out.print("ssss  " + buff.getInt() + "   " +
+				// buf.position() + "\n");
 				buff.flip();
-				//content += charset.decode(buff);
+				content += charset.decode(buff);
 			}
 			// 打印从该sk对应的Channel里读到的数据
-//			System.out.println("====" + content);51
+			System.out.println("====" + content);
 			// 将sk对应的Channel设置成准备下一次读取
 			key.interestOps(SelectionKey.OP_READ);
 		}
@@ -118,7 +119,6 @@ public class TcpChannel implements Runnable {
 		// 那么现在判断是连接的那种服务
 		System.out.println("您的输入为：" + input);
 		// 定义编码格式
-		Charset charset = Charset.forName("UTF-8");
 		channel.write(buf);
 	}
 
