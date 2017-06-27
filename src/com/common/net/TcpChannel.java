@@ -24,7 +24,7 @@ public class TcpChannel implements Runnable {
 	private Selector selector;
 
 	// 缓冲区
-	private ByteBuffer buf = ByteBuffer.allocate(512);
+	private ByteBuffer buf = ByteBuffer.allocate(16);
 
 	public TcpChannel() {
 		init();
@@ -81,15 +81,38 @@ public class TcpChannel implements Runnable {
 		// 从通道里面读取数据到缓冲区并返回读取字节数
 
 		int count = channel.read(this.buf);
+//
+//		if (count == -1) {
+//			// 取消这个通道的注册
+//			key.channel().close();
+//			key.cancel();
+//			return;
+//		}
 
-		if (count == -1) {
+		ByteBuffer buff = ByteBuffer.allocate(1024 * 1024);
+		String content = "";
+		// 开始读数据
+		try {
+			while (channel.read(buff) > 0) {
+				
+				System.out.print("ssss  " + buff.getInt() + "   " + buf.position() +  "\n");
+				buff.flip();
+				//content += charset.decode(buff);
+			}
+			// 打印从该sk对应的Channel里读到的数据
+//			System.out.println("====" + content);51
+			// 将sk对应的Channel设置成准备下一次读取
+			key.interestOps(SelectionKey.OP_READ);
+		}
+		// 如果捕捉到该sk对应的Channel出现了异常，即表明该Channel对应的Client出现了问题
+		// 所以从Selector中取消sk的注册
+		catch (IOException ex) {
+			// 从Selector中删除指定的SelectionKey
 			// 取消这个通道的注册
 			key.channel().close();
 			key.cancel();
-			return;
 		}
-		
-		
+
 		// 将数据从缓冲区中拿出来
 		String input = new String(this.buf.array()).trim();
 		// 那么现在判断是连接的那种服务
@@ -97,7 +120,27 @@ public class TcpChannel implements Runnable {
 		// 定义编码格式
 		Charset charset = Charset.forName("UTF-8");
 		channel.write(buf);
+	}
 
+	// 解包
+	private boolean unPack(MessageBuffer buff) {
+		// if (buff.DataSize < 6) return false;
+
+		// CBytesBuffer tmpbuff = new CBytesBuffer(buff);
+		// dPackage.buffer.clear();
+		//
+		// dPackage.size = CBufferFilter.readuint32(tmpbuff);
+		// dPackage.msgid = CBufferFilter.readuint16(tmpbuff);
+		//
+		// if (tmpbuff.getDataSize() < dPackage.size - 6)
+		// {
+		// return false;
+		// }
+		// dPackage.buffer.write(tmpbuff.Buffer, (int)dPackage.size - 6);
+		//
+		//
+		// buff.popBytes((int)dPackage.size);
+		return true;
 	}
 
 	@Override
@@ -107,12 +150,12 @@ public class TcpChannel implements Runnable {
 			SelectionKey currentKey;
 			try {
 				// 选择一组键，其相应的通道已为 I/O 操作准备就绪。
-				if (selector.select(TimeOut) == 0) {
-					// 监听注册通道，当其中有注册的 IO
-					// 操作可以进行时，该函数返回，并将对应的
-					System.out.print("独自等待.");
-					continue;
-				}
+				// if (selector.select(TimeOut) == 0) {
+				// // 监听注册通道，当其中有注册的 IO
+				// // 操作可以进行时，该函数返回，并将对应的
+				// System.out.print("独自等待.\n");
+				// continue;
+				// }
 				this.selector.select();
 
 				// 返回此选择器的已选择键集
@@ -120,8 +163,6 @@ public class TcpChannel implements Runnable {
 				while (selectorKeys.hasNext()) {
 					// 这里找到当前的选择键
 					currentKey = (SelectionKey) selectorKeys.next();
-					// 然后将它从返回键队列中删除
-
 					if (!currentKey.isValid()) {
 						continue;
 					}
@@ -136,7 +177,6 @@ public class TcpChannel implements Runnable {
 				}
 			} catch (Exception e) {
 				selectorKeys.remove();
-				// e.printStackTrace();
 			}
 		}
 
