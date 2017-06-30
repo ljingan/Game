@@ -1,7 +1,10 @@
 package com.common.net;
 
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -18,10 +21,10 @@ public class TcpChannel implements Runnable {
 	private Integer port = 20006;
 	// 服务器通道 服务
 	private ServerSocketChannel serversocket;
-	// 连接1
-	private SocketChannel clientchannel;
+	
 	// 选择器，主要用来监控各个通道的事件
 	private Selector selector;
+	private MessageBuffer mesBuf;
 
 	// 缓冲区
 	private ByteBuffer buf = ByteBuffer.allocate(16);
@@ -34,6 +37,7 @@ public class TcpChannel implements Runnable {
 	 * 这个method的作用1：是初始化选择器 2：打开两个通道 3：给通道上绑定一个socket 4：将选择器注册到通道上
 	 * */
 	public void init() {
+		mesBuf = new MessageBuffer(16);
 		try {
 			// 创建选择器
 			this.selector = SelectorProvider.provider().openSelector();
@@ -59,11 +63,10 @@ public class TcpChannel implements Runnable {
 	 * @throws IOException
 	 * */
 	public void accept(SelectionKey key) throws IOException {
-		ServerSocketChannel server = (ServerSocketChannel) key.channel();
-		clientchannel = server.accept();
-		clientchannel.configureBlocking(false);
+		SocketChannel channel = ((ServerSocketChannel)key.channel()).accept();
+		channel.configureBlocking(false);
 		// OP_READ用于读取操作的操作集位
-		clientchannel.register(this.selector, SelectionKey.OP_READ);
+		channel.register(this.selector, SelectionKey.OP_READ);
 	}
 
 	/**
@@ -77,7 +80,18 @@ public class TcpChannel implements Runnable {
 		// 通过选择键来找到之前注册的通道
 		// 但是这里注册的是ServerSocketChannel为什么会返回一个SocketChannel？？
 		SocketChannel channel = (SocketChannel) key.channel();
-		System.out.print(channel.socket().getInetAddress().toString() + "  \n");
+		Socket socket = channel.socket();
+		InputStream is = socket.getInputStream();
+		 DataInputStream input = new DataInputStream(socket.getInputStream());  
+//		 String clientInputStr = input.readUTF();
+		byte[] ft = new byte[100];  
+	    int len = -1;  
+//	    while ((len = is.read(ft)) != -1) {  
+//	    	System.out.print(len+ "  ");
+//	    }  
+	    ByteBuffer bf  = ByteBuffer.wrap(ft);
+//		System.out.print(is.available() + "   " + clientInputStr+ "\n");
+		//System.out.print(channel.socket().getInetAddress().toString() + "  \n");
 		// 从通道里面读取数据到缓冲区并返回读取字节数
 
 		// int count = channel.read(this.buf);
@@ -88,17 +102,36 @@ public class TcpChannel implements Runnable {
 		// key.cancel();
 		// return;
 		// }
+		//得到并清空缓冲区
+		ByteBuffer buffer  = ByteBuffer.allocate(16);
+		//buffer.clear();
+		
+		
 		Charset charset = Charset.forName("gb2312");
-		ByteBuffer buff = ByteBuffer.allocate(64);
+//		ByteBuffer buff = ByteBuffer.allocate(64);
+		//读取信息获得读取的字节数
+		int bytesRead;
 		String content = "";
+		ByteBuffer[] dsts = new ByteBuffer[]{buffer};
+		int offset = 0;
 		// 开始读数据
 		try {
-			while (channel.read(buff) > 0) {
-
+			while ((bytesRead = channel.read(buffer)) != -1) {
+				
+				//buffer.get(dst, offset, length);
 				// System.out.print("ssss  " + buff.getInt() + "   " +
 				// buf.position() + "\n");
-				buff.flip();
-				content += charset.decode(buff);
+				//buffer.flip();
+//				 while (buf.remaining() > 0) {
+//			          System.out.print((char) buf.get());
+//			        }
+				byte[] temp = buffer.array();
+				mesBuf.write(temp, bytesRead);
+				buffer.clear();
+				//ByteBuffer buffer = new by
+				String receivedString = Charset.forName("UTF-8").newDecoder().decode(buffer).toString();
+				System.out.print(receivedString + "  sss\n");
+				//content += charset.decode(buffer);
 			}
 			// 打印从该sk对应的Channel里读到的数据
 			System.out.println("====" + content);
@@ -115,11 +148,11 @@ public class TcpChannel implements Runnable {
 		}
 
 		// 将数据从缓冲区中拿出来
-		String input = new String(this.buf.array()).trim();
+		//String input = new String(this.buf.array()).trim();
 		// 那么现在判断是连接的那种服务
-		System.out.println("您的输入为：" + input);
+		//System.out.println("您的输入为：" + input);
 		// 定义编码格式
-		channel.write(buf);
+		//channel.write(buf);
 	}
 
 	// 解包
@@ -160,6 +193,7 @@ public class TcpChannel implements Runnable {
 
 				// 返回此选择器的已选择键集
 				selectorKeys = this.selector.selectedKeys().iterator();
+				
 				while (selectorKeys.hasNext()) {
 					// 这里找到当前的选择键
 					currentKey = (SelectionKey) selectorKeys.next();
@@ -173,7 +207,7 @@ public class TcpChannel implements Runnable {
 						// 读取客户端的数据
 						this.read(currentKey);
 					}
-					selectorKeys.remove();
+					//selectorKeys.remove();
 				}
 			} catch (Exception e) {
 				selectorKeys.remove();

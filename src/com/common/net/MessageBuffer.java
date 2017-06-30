@@ -76,7 +76,7 @@ public class MessageBuffer {
 				temp = new byte[len];
 				System.arraycopy(bytes, 0, temp, 0, len);
 			}
-			System.arraycopy(_buffer, getContentSize(), temp, 0, len);
+			System.arraycopy(temp, 0, _buffer, getContentSize(), len);
 			_free -= len;
 			return len;
 		}
