@@ -1,8 +1,12 @@
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import com.common.handler.UserHandler;
 import com.common.net.ServerThread;
 import com.common.net.TcpChannel;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.pb.gs.Game.AllotSeatNtf;
+import com.pb.gs.Game.PlayerInfo;
 
 public class TestGame {
 	public static void main(String[] args) throws Exception {
@@ -23,5 +27,20 @@ public class TestGame {
 		Thread thread = new Thread(server);
 		thread.start();
 		System.out.print("启动\n");
+		new UserHandler();
+
+		AllotSeatNtf.Builder builder = AllotSeatNtf.newBuilder();
+		builder.setSelfSeat(100);
+
+		AllotSeatNtf allotSeatNtf = builder.build();
+		 
+		byte[] buf = allotSeatNtf.toByteArray();
+
+		try {
+			allotSeatNtf = AllotSeatNtf.parseFrom(buf);
+		} catch (InvalidProtocolBufferException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
