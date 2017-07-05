@@ -1,12 +1,11 @@
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
+import pb.gs.Game.AllotSeatNtf;
 
 import com.common.handler.UserHandler;
-import com.common.net.ServerThread;
 import com.common.net.TcpChannel;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.pb.gs.Game.AllotSeatNtf;
-import com.pb.gs.Game.PlayerInfo;
 
 public class TestGame {
 	public static void main(String[] args) throws Exception {
@@ -34,10 +33,19 @@ public class TestGame {
 
 		AllotSeatNtf allotSeatNtf = builder.build();
 		 
-		byte[] buf = allotSeatNtf.toByteArray();
+		
+		 // 将数据写到输出流，如网络输出流，这里就用ByteArrayOutputStream来代替  
+		// 接收到流并读取，如网络输入流，这里用ByteArrayInputStream来代替  
+       
+        ByteArrayOutputStream output = new ByteArrayOutputStream();  
+        allotSeatNtf.writeTo(output);  
+        
+       
+		byte[] buf = output.toByteArray();
 
 		try {
-			allotSeatNtf = AllotSeatNtf.parseFrom(buf);
+			 ByteArrayInputStream input = new ByteArrayInputStream(buf); 
+			allotSeatNtf = AllotSeatNtf.parseFrom(input);
 		} catch (InvalidProtocolBufferException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
