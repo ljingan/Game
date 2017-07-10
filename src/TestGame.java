@@ -1,11 +1,10 @@
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-import pb.gs.Game.AllotSeatNtf;
-
 import com.common.handler.UserHandler;
 import com.common.net.TcpChannel;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.pb.gs.Game.AllotSeatNtf;
 
 public class TestGame {
 	public static void main(String[] args) throws Exception {

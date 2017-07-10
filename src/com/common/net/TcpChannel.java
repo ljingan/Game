@@ -86,13 +86,15 @@ public class TcpChannel implements Runnable {
 				byte[] temp = buffer.array();
 				mesBuf.write(temp, bytesRead);
 				buffer.clear();
-				// ByteBuffer buffer = new by
-				String receivedString = Charset.forName("UTF-8").newDecoder()
-						.decode(buffer).toString();
-				System.out.print(receivedString + "  sss\n");
-				// content += charset.decode(buffer);
+//				String receivedString = Charset.forName("UTF-8").newDecoder()
+//						.decode(buffer).toString();
+//				System.out.print(receivedString + "  sss\n");
+				
 			}
-			key.interestOps(SelectionKey.OP_READ);
+			DataPackage pack = new DataPackage();
+			unPack(mesBuf, pack);
+			mesBuf.getContentSize();
+			key.interestOps(SelectionKey.OP_READ|SelectionKey.OP_WRITE);
 		}
 		// 如果捕捉到该sk对应的Channel出现了异常，即表明该Channel对应的Client出现了问题
 		// 所以从Selector中取消sk的注册
@@ -105,9 +107,12 @@ public class TcpChannel implements Runnable {
 	}
 
 	// 解包
-	private boolean unPack(MessageBuffer buff) {
-		// if (buff.DataSize < 6) return false;
-
+	private boolean unPack(MessageBuffer buff, DataPackage pack) {
+		if(buff.getContentSize() < DataPackage.PACKAGE_HEAD_LENGTH)
+			return false;
+		
+//		int size = buff.read(value);
+		//pack.setSize(size);
 		// CBytesBuffer tmpbuff = new CBytesBuffer(buff);
 		// dPackage.buffer.clear();
 		//
