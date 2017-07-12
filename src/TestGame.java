@@ -1,10 +1,5 @@
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
 import com.common.handler.UserHandler;
 import com.common.net.TcpChannel;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.pb.gs.Game.AllotSeatNtf;
 
 public class TestGame {
 	public static void main(String[] args) throws Exception {
@@ -27,27 +22,27 @@ public class TestGame {
 		System.out.print("启动\n");
 		new UserHandler();
 
-		AllotSeatNtf.Builder builder = AllotSeatNtf.newBuilder();
-		builder.setSelfSeat(100);
-
-		AllotSeatNtf allotSeatNtf = builder.build();
-		 
-		
-		 // 将数据写到输出流，如网络输出流，这里就用ByteArrayOutputStream来代替  
-		// 接收到流并读取，如网络输入流，这里用ByteArrayInputStream来代替  
-       
-        ByteArrayOutputStream output = new ByteArrayOutputStream();  
-        allotSeatNtf.writeTo(output);  
-        
-       
-		byte[] buf = output.toByteArray();
-
-		try {
-			 ByteArrayInputStream input = new ByteArrayInputStream(buf); 
-			allotSeatNtf = AllotSeatNtf.parseFrom(input);
-		} catch (InvalidProtocolBufferException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		AllotSeatNtf.Builder builder = AllotSeatNtf.newBuilder();
+//		builder.setSelfSeat(100);
+//
+//		AllotSeatNtf allotSeatNtf = builder.build();
+//		 
+//		
+//		 // 将数据写到输出流，如网络输出流，这里就用ByteArrayOutputStream来代替  
+//		// 接收到流并读取，如网络输入流，这里用ByteArrayInputStream来代替  
+//       
+//        ByteArrayOutputStream output = new ByteArrayOutputStream();  
+//        allotSeatNtf.writeTo(output);  
+//        
+//       
+//		byte[] buf = output.toByteArray();
+//
+//		try {
+//			 ByteArrayInputStream input = new ByteArrayInputStream(buf); 
+//			allotSeatNtf = AllotSeatNtf.parseFrom(input);
+//		} catch (InvalidProtocolBufferException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 }

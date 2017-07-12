@@ -1,17 +1,20 @@
 package com.common.net;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
-import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Set;
+
+import com.C2S.C2SPtl.C2SLogin;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 public class TcpChannel implements Runnable {
 	// 超时时间，单位毫秒
@@ -79,22 +82,26 @@ public class TcpChannel implements Runnable {
 		// 读取信息获得读取的字节数
 		int bytesRead;
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
+		buffer.order(ByteOrder.BIG_ENDIAN);
 		// 开始读数据
 		try {
-			while ((bytesRead = channel.read(buffer)) != -1) {
+			while ((bytesRead = channel.read(buffer)) > 0) {
 
 				byte[] temp = buffer.array();
 				mesBuf.write(temp, bytesRead);
 				buffer.clear();
-//				String receivedString = Charset.forName("UTF-8").newDecoder()
-//						.decode(buffer).toString();
-//				System.out.print(receivedString + "  sss\n");
-				
+				// String receivedString = Charset.forName("UTF-8").newDecoder()
+				// .decode(buffer).toString();
+				// System.out.print(receivedString + "  sss\n");
+
 			}
+			int dd = buffer.getShort();
+			byte dddd = buffer.get();
+			short cmd = buffer.getShort();
 			DataPackage pack = new DataPackage();
 			unPack(mesBuf, pack);
 			mesBuf.getContentSize();
-			key.interestOps(SelectionKey.OP_READ|SelectionKey.OP_WRITE);
+			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
 		// 如果捕捉到该sk对应的Channel出现了异常，即表明该Channel对应的Client出现了问题
 		// 所以从Selector中取消sk的注册
@@ -108,11 +115,26 @@ public class TcpChannel implements Runnable {
 
 	// 解包
 	private boolean unPack(MessageBuffer buff, DataPackage pack) {
-		if(buff.getContentSize() < DataPackage.PACKAGE_HEAD_LENGTH)
+		if (buff.getContentSize() < DataPackage.PACKAGE_HEAD_LENGTH)
 			return false;
-		
-//		int size = buff.read(value);
-		//pack.setSize(size);
+		// short sd = buff.readShort();
+		pack.setSize(buff.readShort());
+		pack.setIsZip(buff.readByte());
+		pack.setCmd(buff.readShort());
+		int size = pack.getSize() - DataPackage.PACKAGE_HEAD_LENGTH;
+		byte[] data = new byte[size];
+		buff.readBytes(data, 0, size);
+		try {
+			ByteArrayInputStream input = new ByteArrayInputStream(data);
+			C2SLogin login = C2SLogin.parseFrom(input);
+			login.getId();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// byte[] data = buff.read(buf, len);
+		// int size = buff.read(value);
+		// pack.setSize(size);
 		// CBytesBuffer tmpbuff = new CBytesBuffer(buff);
 		// dPackage.buffer.clear();
 		//
@@ -143,7 +165,8 @@ public class TcpChannel implements Runnable {
 				Set<SelectionKey> keys = this.selector.selectedKeys();
 				int index = 0;
 				while (selectorKeys.hasNext()) {
-					System.out.print(keys.size() + "   " + (index++) + " \n");
+					// System.out.print(keys.size() + "   " + (index++) +
+					// " \n");
 					// 这里找到当前的选择键
 					currentKey = (SelectionKey) selectorKeys.next();
 					if (!currentKey.isValid()) {

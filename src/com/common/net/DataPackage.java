@@ -5,7 +5,7 @@ public class DataPackage {
 	/*
 	 * 包头长度
 	 */
-	public static int PACKAGE_HEAD_LENGTH = 14;
+	public static int PACKAGE_HEAD_LENGTH = 5;
 	/*
 	 * 长度
 	 */

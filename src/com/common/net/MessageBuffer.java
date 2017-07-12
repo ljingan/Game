@@ -3,14 +3,19 @@ package com.common.net;
 public class MessageBuffer {
 
 	/**
-	 * 默认buff分配长度128字节
+	 * 默认buff分配长度64字节
 	 */
-	private static int DEFALUT_SIZE = 128;
+	private static int DEFALUT_SIZE = 64;
 
 	/**
 	 * 
 	 */
 	private byte[] _buffer = null;
+
+	/**
+	 * 读写位置
+	 */
+	private int position = 0;
 
 	/**
 	 * buff总长度
@@ -23,7 +28,6 @@ public class MessageBuffer {
 	private int _free = 0;
 
 	public MessageBuffer(int len) {
-
 		if (len <= 0) {
 			_length = DEFALUT_SIZE;
 			_free = DEFALUT_SIZE;
@@ -58,6 +62,18 @@ public class MessageBuffer {
 	}
 
 	/**
+	 * 读取一个byte值 成功读取返回0,失败返回-1
+	 */
+	public byte readByte() {
+		if (!checkCanReadSize(1)) {
+			return -1;
+		}
+		int index = position;
+		position++;
+		return _buffer[index + 0];
+	}
+
+	/**
 	 * 内容的长度
 	 */
 	public int getContentSize() {
@@ -88,20 +104,6 @@ public class MessageBuffer {
 	}
 
 	/**
-	 * 读取一个byte值 成功读取返回0,失败返回-1
-	 */
-	public int read(byte value) {
-		value = 0;
-		if (getContentSize() > 0) {
-			value = _buffer[0];
-			popBytes(1);
-			return 0;
-		} else {
-			return -1;
-		}
-	}
-
-	/**
 	 * 
 	 * @param buf读取字节流到
 	 * @param len
@@ -122,6 +124,26 @@ public class MessageBuffer {
 		}
 	}
 
+	public synchronized int readBytes(byte b[], int offset, int len) {
+		if (b == null) {
+			throw new NullPointerException();
+		} else if (offset < 0 || len < 0 || len > b.length - offset) {
+			throw new IndexOutOfBoundsException();
+		}
+		if (position >= getContentSize()) {
+			return -1;
+		}
+		if (position + len > getContentSize()) {
+			len = getContentSize() - position;
+		}
+		if (len <= 0) {
+			return 0;
+		}
+		System.arraycopy(_buffer, position, b, offset, len);
+		position += len;
+		return len;
+	}
+
 	public void writeInt(int value) {
 		increaceContenSize(4);
 		write((byte) (value >> 0));
@@ -134,8 +156,11 @@ public class MessageBuffer {
 		if (!checkCanReadSize(4)) {
 			return -1;
 		}
-		int result = _buffer[3] & 0xFF | (_buffer[2] & 0xFF) << 8
-				| (_buffer[1] & 0xFF) << 16 | (_buffer[0] & 0xFF) << 24;
+		int result = _buffer[position + 0] & 0xFF
+				| (_buffer[position + 1] & 0xFF) << 8
+				| (_buffer[position + 2] & 0xFF) << 16
+				| (_buffer[position + 3] & 0xFF) << 24;
+		position += 4;
 		return result;
 	}
 
@@ -143,13 +168,14 @@ public class MessageBuffer {
 		if (!checkCanReadSize(8)) {
 			return -1;
 		}
-		long result = ((((long) _buffer[7] & 0xff) << 56)
-				| (((long) _buffer[6] & 0xff) << 48)
-				| (((long) _buffer[5] & 0xff) << 40)
-				| (((long) _buffer[4] & 0xff) << 32)
-				| (((long) _buffer[3] & 0xff) << 24)
-				| (((long) _buffer[2] & 0xff) << 16)
-				| (((long) _buffer[1] & 0xff) << 8) | (((long) _buffer[0] & 0xff) << 0));
+		long result = ((((long) _buffer[position + 0] & 0xff) << 56)
+				| (((long) _buffer[position + 1] & 0xff) << 48)
+				| (((long) _buffer[position + 2] & 0xff) << 40)
+				| (((long) _buffer[position + 3] & 0xff) << 32)
+				| (((long) _buffer[position + 4] & 0xff) << 24)
+				| (((long) _buffer[position + 5] & 0xff) << 16)
+				| (((long) _buffer[position + 6] & 0xff) << 8) | (((long) _buffer[position + 7] & 0xff) << 0));
+		position += 8;
 		return result;
 	}
 
@@ -170,13 +196,14 @@ public class MessageBuffer {
 			return -1;
 		}
 		int l;
-		l = _buffer[0];
+		l = _buffer[position + 3];
 		l &= 0xff;
-		l |= ((long) _buffer[1] << 8);
+		l |= ((long) _buffer[position + 2] << 8);
 		l &= 0xffff;
-		l |= ((long) _buffer[2] << 16);
+		l |= ((long) _buffer[position + 1] << 16);
 		l &= 0xffffff;
-		l |= ((long) _buffer[3] << 24);
+		l |= ((long) _buffer[position + 0] << 24);
+		position += 4;
 		return Float.intBitsToFloat(l);
 	}
 
@@ -186,11 +213,14 @@ public class MessageBuffer {
 		write((byte) (value >> 8));
 	}
 
-	public short getShort() {
+	public short readShort() {
 		if (!checkCanReadSize(2)) {
 			return -1;
 		}
-		return (short) (((_buffer[1] << 8) | _buffer[0] & 0xff));
+		// short ii = (short) ((((byte)0 << 8) | (byte)8 & 0xff));
+		short result = (short) (((_buffer[position + 0] << 8) | _buffer[position + 1] & 0xff));
+		position += 2;
+		return result;
 	}
 
 	public void writeDouble(double value) {
@@ -206,21 +236,22 @@ public class MessageBuffer {
 			return -1;
 		}
 		long l;
-		l = _buffer[0];
+		l = _buffer[position + 7];
 		l &= 0xff;
-		l |= ((long) _buffer[1] << 8);
+		l |= ((long) _buffer[position + 6] << 8);
 		l &= 0xffff;
-		l |= ((long) _buffer[2] << 16);
+		l |= ((long) _buffer[position + 5] << 16);
 		l &= 0xffffff;
-		l |= ((long) _buffer[3] << 24);
+		l |= ((long) _buffer[position + 4] << 24);
 		l &= 0xffffffffl;
-		l |= ((long) _buffer[4] << 32);
+		l |= ((long) _buffer[position + 3] << 32);
 		l &= 0xffffffffffl;
-		l |= ((long) _buffer[5] << 40);
+		l |= ((long) _buffer[position + 2] << 40);
 		l &= 0xffffffffffffl;
-		l |= ((long) _buffer[6] << 48);
+		l |= ((long) _buffer[position + 1] << 48);
 		l &= 0xffffffffffffffl;
-		l |= ((long) _buffer[7] << 56);
+		l |= ((long) _buffer[position + 0] << 56);
+		position += 8;
 		return Double.longBitsToDouble(l);
 	}
 
@@ -238,16 +269,18 @@ public class MessageBuffer {
 	 */
 	public char readChar() {
 		int s = 0;
-		if (_buffer[1] > 0)
-			s += _buffer[1];
+		int index = getContentSize() - 2;
+		if (_buffer[position + 1] > 0)
+			s += _buffer[position + 1];
 		else
-			s += 256 + _buffer[0];
+			s += 256 + _buffer[position + 0];
 		s *= 256;
-		if (_buffer[0] > 0)
+		if (_buffer[index + 0] > 0)
 			s += _buffer[1];
 		else
-			s += 256 + _buffer[0];
+			s += 256 + _buffer[position + 0];
 		char ch = (char) s;
+		position += 2;
 		return ch;
 	}
 
@@ -325,5 +358,13 @@ public class MessageBuffer {
 			_buffer = temp;
 		}
 		return _length;
+	}
+
+	public int getPosition() {
+		return position;
+	}
+
+	public void setPosition(int position) {
+		this.position = position;
 	}
 }
