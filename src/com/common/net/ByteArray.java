@@ -2,8 +2,6 @@ package com.common.net;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
 
 public class ByteArray {
 
@@ -502,9 +500,12 @@ public class ByteArray {
 	 */
 	public void clear() {
 		_position = 0;
+		if (_length != _orginSize) {
+			//纠结
+			_buffer = new byte[_orginSize];
+		}
 		_length = _orginSize;
 		_free = _orginSize;
-		_buffer = new byte[_orginSize];
 	}
 
 	public int getPosition() {

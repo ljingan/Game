@@ -7,12 +7,12 @@ public class UserHandler extends AbstractHandler {
 		// System.out.print(color + "\n");
 	}
 
-	@Cmd(id = 1)
+	@Cmd(id = 1001)
 	public void login() {
 		System.out.print("loginloginlogin\n");
 	}
 
-	@Cmd(id = 2)
+	@Cmd(id = 1000)
 	public void val() {
 		System.out.print("valvalval\n");
 	}

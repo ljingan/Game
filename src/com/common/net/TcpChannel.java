@@ -10,10 +10,13 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
 import com.C2S.C2SPtl.C2SLogin;
+import com.common.handler.Dispatcher;
+import com.common.handler.Handler;
 
 public class TcpChannel implements Runnable {
 	// 超时时间，单位毫秒
@@ -85,18 +88,14 @@ public class TcpChannel implements Runnable {
 		// 开始读数据
 		try {
 			while ((bytesRead = channel.read(buffer)) > 0) {
-
 				byte[] temp = buffer.array();
+				int position = mesBuf.getPosition();
 				mesBuf.write(temp, bytesRead);
+				mesBuf.setPosition(position);
 				buffer.clear();
-
 			}
-//			int dd = buffer.getShort();
-//			byte dddd = buffer.get();
-//			short cmd = buffer.getShort();
-			DataPackage pack = new DataPackage();
-			unPack(mesBuf, pack);
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+			unPack(mesBuf);
 		}
 		// 如果捕捉到该sk对应的Channel出现了异常，即表明该Channel对应的Client出现了问题
 		// 所以从Selector中取消sk的注册
@@ -109,27 +108,45 @@ public class TcpChannel implements Runnable {
 	}
 
 	// 解包
-	private boolean unPack(ByteArray buff, DataPackage pack) {
-		if (buff.size() < DataPackage.PACKAGE_HEAD_LENGTH)
-			return false;
-		// short sd = buff.readShort();
-//		int size = buff.readShort();
-		pack.setSize(buff.readShort());
-		pack.setIsZip(buff.readByte());
-		pack.setCmd(buff.readShort());
-		int len = pack.getSize() - DataPackage.PACKAGE_HEAD_LENGTH;
-//		if(buff.available() < )
-		byte[] data = new byte[len];
-		buff.readBytes(data, 0, len);
-		try {
-			ByteArrayInputStream input = new ByteArrayInputStream(data);
-			C2SLogin login = C2SLogin.parseFrom(input);
-			login.getId();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
+	private boolean unPack(ByteArray buff) {
+		ArrayList<DataPackage> list = new ArrayList<DataPackage>();
+		while (buff.available() >= DataPackage.PACKAGE_HEAD_LENGTH) {
+			int position = buff.getPosition();
+			int size = buff.readShort();
+			if (buff.available() + 2 >= size) {
+				DataPackage pack = new DataPackage();
+				pack.setSize(size);
+				pack.setIsZip(buff.readByte());
+				pack.setCmd(buff.readShort());
+				int len = size - DataPackage.PACKAGE_HEAD_LENGTH;
+				byte[] data = new byte[len];
+				buff.readBytes(data, 0, len);
+				pack.setData(data);
+				list.add(pack);
+			} else {
+				buff.setPosition(position);
+				break;
+			}
 		}
+		if (buff.available() == 0) {
+			buff.clear();
+		}
+		Iterator<DataPackage> it = list.iterator();
+		while (it.hasNext()) {
+			DataPackage pack = it.next();
+			Handler handler = Dispatcher.get(pack.getCmd());
+			handler.exceute(pack);
+		}
+		// Dispatcher.get(key);
+		// try {
+//		 ByteArrayInputStream input = new ByteArrayInputStream(pack);
+//		 C2SLogin login = C2SLogin.parseFrom(input);
+		// login.getId();
+		// } catch (IOException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// return false;
+		// }
 		return true;
 	}
 
