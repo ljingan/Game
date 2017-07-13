@@ -14,7 +14,7 @@ public class DataPackage {
 	/*
 	 * 消息缓存
 	 */
-	private MessageBuffer buffer;
+	private ByteArray buffer;
 
 	/*
 	 * 流水号
@@ -27,7 +27,7 @@ public class DataPackage {
 	private byte isZip;
 
 	public DataPackage() {
-		setBuffer(new MessageBuffer());
+		setBuffer(new ByteArray());
 	}
 
 	public void setSize(int size) {
@@ -38,11 +38,11 @@ public class DataPackage {
 		return size;
 	}
 
-	public void setBuffer(MessageBuffer buffer) {
+	public void setBuffer(ByteArray buffer) {
 		this.buffer = buffer;
 	}
 
-	public MessageBuffer getBuffer() {
+	public ByteArray getBuffer() {
 		return buffer;
 	}
 

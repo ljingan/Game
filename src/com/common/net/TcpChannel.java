@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.C2S.C2SPtl.C2SLogin;
-import com.google.protobuf.InvalidProtocolBufferException;
 
 public class TcpChannel implements Runnable {
 	// 超时时间，单位毫秒
@@ -26,7 +25,7 @@ public class TcpChannel implements Runnable {
 
 	// 选择器，主要用来监控各个通道的事件
 	private Selector selector;
-	private MessageBuffer mesBuf;
+	private ByteArray mesBuf;
 
 	public TcpChannel() {
 		init();
@@ -36,7 +35,7 @@ public class TcpChannel implements Runnable {
 	 * 这个method的作用1：是初始化选择器 2：打开两个通道 3：给通道上绑定一个socket 4：将选择器注册到通道上
 	 * */
 	public void init() {
-		mesBuf = new MessageBuffer(16);
+		mesBuf = new ByteArray(16);
 		try {
 			// 创建选择器
 			this.selector = SelectorProvider.provider().openSelector();
@@ -90,17 +89,13 @@ public class TcpChannel implements Runnable {
 				byte[] temp = buffer.array();
 				mesBuf.write(temp, bytesRead);
 				buffer.clear();
-				// String receivedString = Charset.forName("UTF-8").newDecoder()
-				// .decode(buffer).toString();
-				// System.out.print(receivedString + "  sss\n");
 
 			}
-			int dd = buffer.getShort();
-			byte dddd = buffer.get();
-			short cmd = buffer.getShort();
+//			int dd = buffer.getShort();
+//			byte dddd = buffer.get();
+//			short cmd = buffer.getShort();
 			DataPackage pack = new DataPackage();
 			unPack(mesBuf, pack);
-			mesBuf.getContentSize();
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
 		// 如果捕捉到该sk对应的Channel出现了异常，即表明该Channel对应的Client出现了问题
@@ -114,16 +109,18 @@ public class TcpChannel implements Runnable {
 	}
 
 	// 解包
-	private boolean unPack(MessageBuffer buff, DataPackage pack) {
-		if (buff.getContentSize() < DataPackage.PACKAGE_HEAD_LENGTH)
+	private boolean unPack(ByteArray buff, DataPackage pack) {
+		if (buff.size() < DataPackage.PACKAGE_HEAD_LENGTH)
 			return false;
 		// short sd = buff.readShort();
+//		int size = buff.readShort();
 		pack.setSize(buff.readShort());
 		pack.setIsZip(buff.readByte());
 		pack.setCmd(buff.readShort());
-		int size = pack.getSize() - DataPackage.PACKAGE_HEAD_LENGTH;
-		byte[] data = new byte[size];
-		buff.readBytes(data, 0, size);
+		int len = pack.getSize() - DataPackage.PACKAGE_HEAD_LENGTH;
+//		if(buff.available() < )
+		byte[] data = new byte[len];
+		buff.readBytes(data, 0, len);
 		try {
 			ByteArrayInputStream input = new ByteArrayInputStream(data);
 			C2SLogin login = C2SLogin.parseFrom(input);
@@ -131,24 +128,8 @@ public class TcpChannel implements Runnable {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return false;
 		}
-		// byte[] data = buff.read(buf, len);
-		// int size = buff.read(value);
-		// pack.setSize(size);
-		// CBytesBuffer tmpbuff = new CBytesBuffer(buff);
-		// dPackage.buffer.clear();
-		//
-		// dPackage.size = CBufferFilter.readuint32(tmpbuff);
-		// dPackage.msgid = CBufferFilter.readuint16(tmpbuff);
-		//
-		// if (tmpbuff.getDataSize() < dPackage.size - 6)
-		// {
-		// return false;
-		// }
-		// dPackage.buffer.write(tmpbuff.Buffer, (int)dPackage.size - 6);
-		//
-		//
-		// buff.popBytes((int)dPackage.size);
 		return true;
 	}
 
