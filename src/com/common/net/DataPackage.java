@@ -6,7 +6,7 @@ public class DataPackage {
 	 * 包头长度
 	 */
 	public static int PACKAGE_HEAD_LENGTH = 5;
-	
+
 	/**
 	 * 长度
 	 */
@@ -15,7 +15,12 @@ public class DataPackage {
 	/**
 	 * 消息缓存
 	 */
-	private byte[] data;
+	private byte[] bytes;
+
+	/**
+	 * proto数据对象
+	 */
+	private Object data;
 
 	/**
 	 * 流水号
@@ -54,11 +59,20 @@ public class DataPackage {
 		return isZip;
 	}
 
-	public void setData(byte[] data) {
+	public void setBytes(byte[] data) {
+		this.bytes = data;
+	}
+
+	public byte[] getBytes() {
+		return bytes;
+	}
+
+	public Object getData() {
+		return data;
+	}
+
+	public void setData(Object data) {
 		this.data = data;
 	}
 
-	public byte[] getData() {
-		return data;
-	}
 }

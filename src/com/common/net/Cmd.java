@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cmd {
 	public int id() default -1;
+	public Class<?> protoClass();
 }

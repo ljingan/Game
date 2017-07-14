@@ -1,8 +1,16 @@
+
+import org.apache.commons.httpclient.HttpClient;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+
 import com.common.handler.UserHandler;
 import com.common.net.ByteArray;
 import com.common.net.TcpChannel;
+import com.common.sms.Sms;
 
 public class TestGame {
+	private static Logger log = LoggerFactory.getLogger(TestGame.class);
+
 	public static void main(String[] args) throws Exception {
 		// // 服务端在20006端口监听客户端请求的TCP连接
 		// ServerSocket server = new ServerSocket(20006);
@@ -17,13 +25,15 @@ public class TestGame {
 		// new Thread(new ServerThread(client)).start();
 		// }
 		// server.close();
+		log.debug("ddd");
+//		return;
 		TcpChannel server = new TcpChannel();
 		Thread thread = new Thread(server);
 		thread.start();
 		System.out.print("启动\n");
 		new UserHandler();
-
 		ByteArray arr = new ByteArray();
+		log.error("dcfdfcddd");
 		// char ch = '大';
 		// arr.writeChar(ch);
 		// arr.setPosition(0);
@@ -36,12 +46,14 @@ public class TestGame {
 		arr.writeDouble(454456467.8833249);
 
 		arr.setPosition(0);
-		System.out.print("\nstring " + arr.readUTF() + "\nint "
-				+ arr.readInt() + "\nlong " + arr.readLong() + "\nshort "
-				+ arr.readShort() + "\nbyte " + arr.readByte() + "\nDouble "
-				+ arr.readDouble());
+		System.out.print("\nstring " + arr.readUTF() + "\nint " + arr.readInt()
+				+ "\nlong " + arr.readLong() + "\nshort " + arr.readShort()
+				+ "\nbyte " + arr.readByte() + "\nDouble " + arr.readDouble());
 		arr.clear();
 		System.out.print("\n\n\n");
+//		HttpClient httpClient = new HttpClient();
+//		Sms sms = new Sms();
+//		sms.sendMsg("13751709027", "ddddd");
 		// AllotSeatNtf.Builder builder = AllotSeatNtf.newBuilder();
 		// builder.setSelfSeat(100);
 		//

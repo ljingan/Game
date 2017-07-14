@@ -121,7 +121,7 @@ public class TcpChannel implements Runnable {
 				int len = size - DataPackage.PACKAGE_HEAD_LENGTH;
 				byte[] data = new byte[len];
 				buff.readBytes(data, 0, len);
-				pack.setData(data);
+				pack.setBytes(data);
 				list.add(pack);
 			} else {
 				buff.setPosition(position);

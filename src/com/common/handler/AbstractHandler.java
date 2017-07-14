@@ -1,10 +1,10 @@
 package com.common.handler;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.C2S.C2SPtl.C2SLogin;
 import com.common.net.Cmd;
@@ -12,7 +12,8 @@ import com.common.net.DataPackage;
 
 public abstract class AbstractHandler implements Handler {
 
-	private HashMap<Integer, Method> cmds = new HashMap<Integer, Method>();
+	private Map<Integer, Method> cmds = new ConcurrentHashMap<Integer, Method>();
+	private Map<Integer, Class<?>> protos = new ConcurrentHashMap<Integer, Class<?>>();
 
 	public AbstractHandler() {
 		initialize();
@@ -24,8 +25,8 @@ public abstract class AbstractHandler implements Handler {
 			Cmd cmd = m.getAnnotation(Cmd.class);
 			if (cmd != null) {
 				cmds.put(cmd.id(), m);
+				protos.put(cmd.id(), cmd.protoClass());
 				Dispatcher.put(cmd.id(), this);
-
 			}
 		}
 	}
@@ -33,47 +34,23 @@ public abstract class AbstractHandler implements Handler {
 	@Override
 	public void exceute(DataPackage pack) {
 		Method m = cmds.get(pack.getCmd());
-		if (m != null) {
+		Class<?> cl = protos.get(pack.getCmd());
+		if (m != null && cl != null) {
 			try {
-				ByteArrayInputStream input = new ByteArrayInputStream(pack
-						.getData());
-				try {
-//			        String className = "ss.Use";
-			        Class<?> cl = Class.forName(C2SLogin.class.getName());
-			        Method saddMethod2 = cl.getMethod("parseFrom", new Class[]{InputStream.class});
-//			        C2SLogin login = C2SLogin.parseFrom(input);
-			        C2SLogin login = (C2SLogin) saddMethod2.invoke(null, input);
-			        login.getId();
-//			          String result=saddMethod2.invoke(null,new Object[]{"测试反射"}).toString();
-//			          System.out.println(result);
-			      } catch (Exception e) {
-			        e.printStackTrace();
-			      }
-
-				// ByteArrayInputStream input = new
-				// ByteArrayInputStream(pack.getData());
-				// C2SLogin login = C2SLogin.parseFrom(input);
-				// try {
-				// ByteArrayInputStream input = new ByteArrayInputStream(data);
-				// C2SLogin login = C2SLogin.parseFrom(input);
-				// login.getId();
-				// } catch (IOException e) {
-				// // TODO Auto-generated catch block
-				// e.printStackTrace();
-				// return false;
-				// }
-				m.invoke(this);
+				Method parseMethod = cl.getMethod("parseFrom",
+						byte[].class );
+				Object data = parseMethod.invoke(null, pack.getBytes());
+				pack.setData(data);
+				m.invoke(this, pack);
 			} catch (IllegalArgumentException e) {
 			} catch (IllegalAccessException e) {
 			} catch (InvocationTargetException e) {
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			} catch (NoSuchMethodException e) {
+				e.printStackTrace();
 			}
 		}
-	}
-
-	private <T> void unpack(T c, ByteArrayInputStream input) {
-//		c.getClass()
-//		T parseFrom = (T)C2SLogin.parseFrom(input);
-//		T login = parseFrom;
 	}
 
 	@Override
