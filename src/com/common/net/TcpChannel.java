@@ -68,6 +68,7 @@ public class TcpChannel implements Runnable {
 		channel.configureBlocking(false);
 		// OP_READ用于读取操作的操作集位
 		channel.register(this.selector, SelectionKey.OP_READ);
+		
 	}
 
 	/**
@@ -137,16 +138,6 @@ public class TcpChannel implements Runnable {
 			Handler handler = Dispatcher.get(pack.getCmd());
 			handler.exceute(pack);
 		}
-		// Dispatcher.get(key);
-		// try {
-//		 ByteArrayInputStream input = new ByteArrayInputStream(pack);
-//		 C2SLogin login = C2SLogin.parseFrom(input);
-		// login.getId();
-		// } catch (IOException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// return false;
-		// }
 		return true;
 	}
 
@@ -160,8 +151,6 @@ public class TcpChannel implements Runnable {
 
 				// 返回此选择器的已选择键集
 				selectorKeys = this.selector.selectedKeys().iterator();
-				Set<SelectionKey> keys = this.selector.selectedKeys();
-				int index = 0;
 				while (selectorKeys.hasNext()) {
 					// System.out.print(keys.size() + "   " + (index++) +
 					// " \n");

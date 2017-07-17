@@ -9,5 +9,22 @@
 	<classpathentry kind="lib" path="libs/xom-1.2.4.jar"/>
 	<classpathentry kind="lib" path="libs/commons-httpclient-3.1.jar"/>
 	<classpathentry kind="lib" path="libs/protobuf-2.5.0.jar"/>
+	<classpathentry kind="lib" path="libs/common-annotations.jar"/>
+	<classpathentry kind="lib" path="libs/commons-attributes-api.jar"/>
+	<classpathentry kind="lib" path="libs/commons-attributes-compiler.jar"/>
+	<classpathentry kind="lib" path="libs/commons-beanutils.jar"/>
+	<classpathentry kind="lib" path="libs/commons-codec.jar"/>
+	<classpathentry kind="lib" path="libs/commons-collections-3.2.2.jar"/>
+	<classpathentry kind="lib" path="libs/commons-dbcp.jar"/>
+	<classpathentry kind="lib" path="libs/commons-digester.jar"/>
+	<classpathentry kind="lib" path="libs/commons-discovery.jar"/>
+	<classpathentry kind="lib" path="libs/commons-fileupload.jar"/>
+	<classpathentry kind="lib" path="libs/commons-httpclient.jar"/>
+	<classpathentry kind="lib" path="libs/commons-io.jar"/>
+	<classpathentry kind="lib" path="libs/commons-lang.jar"/>
+	<classpathentry kind="lib" path="libs/commons-lang3-3.1.jar"/>
+	<classpathentry kind="lib" path="libs/commons-logging.jar"/>
+	<classpathentry kind="lib" path="libs/commons-pool.jar"/>
+	<classpathentry kind="lib" path="libs/commons-validator.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
