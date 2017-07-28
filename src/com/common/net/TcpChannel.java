@@ -1,6 +1,5 @@
 package com.common.net;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -12,13 +11,21 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Set;
 
-import com.C2S.C2SPtl.C2SLogin;
 import com.common.handler.Dispatcher;
 import com.common.handler.Handler;
+import com.common.session.ServerContext;
+import com.common.session.Session;
+import com.common.session.impl.ServerContextImpl;
 
 public class TcpChannel implements Runnable {
+	private ServerContext<SocketChannel> serverContext = ServerContextImpl
+			.getInstance();
+
+	private Session<SocketChannel> getSession(SocketChannel connection) {
+		return serverContext.getSession(connection);
+	}
+
 	// 超时时间，单位毫秒
 	private static final int TimeOut = 1000 * 10;
 	// 端口
@@ -65,10 +72,12 @@ public class TcpChannel implements Runnable {
 	 * */
 	public void accept(SelectionKey key) throws IOException {
 		SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
+		Session<SocketChannel> session =  getSession(channel);
+		session.getSessionId();
 		channel.configureBlocking(false);
 		// OP_READ用于读取操作的操作集位
 		channel.register(this.selector, SelectionKey.OP_READ);
-		
+
 	}
 
 	/**
@@ -84,8 +93,10 @@ public class TcpChannel implements Runnable {
 
 		// 读取信息获得读取的字节数
 		int bytesRead;
-		ByteBuffer buffer = ByteBuffer.allocate(1024);
+		ByteBuffer buffer = ByteBuffer.allocate(8);
 		buffer.order(ByteOrder.BIG_ENDIAN);
+		Session<SocketChannel> session =  getSession(channel);
+		System.out.print("session  " + session.getSessionId() + "\n");
 		// 开始读数据
 		try {
 			while ((bytesRead = channel.read(buffer)) > 0) {
@@ -157,15 +168,12 @@ public class TcpChannel implements Runnable {
 					// 这里找到当前的选择键
 					currentKey = (SelectionKey) selectorKeys.next();
 					if (!currentKey.isValid()) {
-						System.out.print("isValid \n");
 						continue;
 					}
 					if (currentKey.isAcceptable()) {
-						System.out.print("isAcceptable \n");
 						// 如果遇到请求那么就响应
 						this.accept(currentKey);
 					} else if (currentKey.isReadable()) {
-						System.out.print("isReadable \n");
 						// 读取客户端的数据
 						this.read(currentKey);
 					}
