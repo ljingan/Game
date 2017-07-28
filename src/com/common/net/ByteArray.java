@@ -501,7 +501,7 @@ public class ByteArray {
 	public void clear() {
 		_position = 0;
 		if (_length != _orginSize) {
-			//纠结
+			// 纠结
 			_buffer = new byte[_orginSize];
 		}
 		_length = _orginSize;
