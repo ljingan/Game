@@ -48,5 +48,7 @@ public class TestGame {
 //		arr.clear();
 //		System.out.print("\n\n\n");
 		
+		//ClassLoader cl = ClassLoader.getSystemResource(arg0);
+		
 	}
 }
