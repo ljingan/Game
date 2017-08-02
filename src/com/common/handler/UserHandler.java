@@ -1,13 +1,5 @@
 package com.common.handler;
 
-import java.io.IOException;
-
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.PostMethod;
-
 import com.C2S.C2SPtl.C2SLogin;
 import com.common.net.Cmd;
 import com.common.net.DataPackage;

@@ -27,5 +27,7 @@
 	<classpathentry kind="lib" path="libs/commons-pool.jar"/>
 	<classpathentry kind="lib" path="libs/commons-validator.jar"/>
 	<classpathentry kind="lib" path="libs/netty-all-4.1.13.Final.jar" sourcepath="C:/Users/Administrator/Desktop/netty-all-4.1.13.Final-sources"/>
+	<classpathentry kind="lib" path="libs/jedis-2.1.0.jar"/>
+	<classpathentry kind="lib" path="libs/junit-4.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

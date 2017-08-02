@@ -29,7 +29,7 @@ public class TcpChannel implements Runnable {
 	// 超时时间，单位毫秒
 	private static final int TimeOut = 1000 * 10;
 	// 端口
-	private Integer port = 20006;
+	private Integer port = 5273;
 	// 服务器通道 服务
 	private ServerSocketChannel serversocket;
 
@@ -72,6 +72,7 @@ public class TcpChannel implements Runnable {
 	 * */
 	public void accept(SelectionKey key) throws IOException {
 		SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
+		System.out.print(channel.socket().getRemoteSocketAddress() + "\n");
 		Session<SocketChannel> session =  getSession(channel);
 		session.getSessionId();
 		channel.configureBlocking(false);
