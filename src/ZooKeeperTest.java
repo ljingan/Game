@@ -14,6 +14,7 @@ public class ZooKeeperTest {
 
 	// 创建 ZooKeeper 实例
 	private ZooKeeper zk;
+	private ZooKeeper zk1;
 
 	// 创建 Watcher 实例
 	private Watcher wh = new Watcher() {
@@ -24,13 +25,26 @@ public class ZooKeeperTest {
 			System.out.println("WatchedEvent >>> " + event.toString());
 		}
 	};
+	
+	// 创建 Watcher 实例
+	private Watcher wh1 = new Watcher() {
+		/**
+		 * Watched事件
+		 */
+		public void process(WatchedEvent event) {
+			System.out.println("WatchedEvent1 >>> " + event.toString());
+		}
+	};
 
 	// 初始化 ZooKeeper 实例
 	private void createZKInstance() throws IOException {
 		// 连接到ZK服务，多个可以用逗号分割写
 		zk = new ZooKeeper(
-				"172.28.16.28:2181",
+				"172.28.16.17:2184,172.28.16.17:2186,172.28.16.17:2185",
 				ZooKeeperTest.SESSION_TIMEOUT, this.wh);
+		zk1 = new ZooKeeper(
+				"172.28.16.17:2186",
+				ZooKeeperTest.SESSION_TIMEOUT, this.wh1);
 
 	}
 
@@ -54,6 +68,7 @@ public class ZooKeeperTest {
 
 		System.out.println("\n4. 查看是否修改成功： ");
 		System.out.println(new String(zk.getData("/zoo2", false, null)));
+		System.out.println("jjjkk   " + new String(zk1.getData("/zoo2", false, null)));
 
 		System.out.println("\n5. 删除节点 ");
 		zk.delete("/zoo2", -1);

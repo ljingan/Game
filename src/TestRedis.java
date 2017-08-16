@@ -8,21 +8,25 @@ import org.junit.Before;
 import org.junit.Test;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 public class TestRedis {
-//	public static void main(String[] args) {
-//		try {
-//			Jedis jedis = new Jedis("127.0.0.1", 20006);
-//			jedis.set("name", "JackGSmith");
-//			System.out.print(jedis.get("myKey") + "\n");
-//
-//		} catch (Exception e) {
-//			// 如果缓存连不上，则不处理
-//			System.out.println("登录无法更新该用户缓存");
-//		}
-//	}
+	private JedisPool jedisPool;
+	// public static void main(String[] args) {
+	// try {
+	// Jedis jedis = new Jedis("127.0.0.1", 20006);
+	// jedis.set("name", "JackGSmith");
+	// System.out.print(jedis.get("myKey") + "\n");
+	//
+	// } catch (Exception e) {
+	// // 如果缓存连不上，则不处理
+	// System.out.println("登录无法更新该用户缓存");
+	// }
+	// }
 
 	private Jedis jedis;
+
+	// private JedisCluster jedisCluster;
 
 	// before注解的方法，在运行test注解的方法之前会运行
 	@Before
@@ -62,6 +66,8 @@ public class TestRedis {
 
 		jedis.set("china", "这是个中文值");
 		System.out.println(jedis.get("china"));
+		// Jedis jedis=jedisPool.getResource();
+
 	}
 
 	/**
@@ -194,12 +200,12 @@ public class TestRedis {
 	 */
 	@Test
 	public void testJedisPool() {
-//		jedis = JedisPoolTest.getJedis();
-//		jedis.set("kunle", "困了就去lol");
-//		System.out.println(jedis.get("kunle"));
-//		// jedis.quit();//关闭连接用方法quit
-//		JedisPoolTest.returnResource(jedis);
-//		jedis.set("kunle2", "aa");
+		// jedis = JedisPoolTest.getJedis();
+		// jedis.set("kunle", "困了就去lol");
+		// System.out.println(jedis.get("kunle"));
+		// // jedis.quit();//关闭连接用方法quit
+		// JedisPoolTest.returnResource(jedis);
+		// jedis.set("kunle2", "aa");
 		System.out.println(jedis.get("kunle2"));
 	}
 }
